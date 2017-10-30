@@ -35,14 +35,18 @@ shinyUI(
 # Sidebar with input
 #------------------------------------------------------------------------------
 		sidebarPanel(
-			  numericInput('n',             'Sample size - integer [3, 100]:', value=30)
-			, numericInput('Theta0',        'Theta0 - numeric [0.0, 100.0]:', value=10.0)
-			, numericInput('GrowthFactor',  'GrowthFactor - numeric [0.000001, 1000000]:', value=1.0)
-			, numericInput('Tau',           'Tau - numeric [0, 1000]:', value=15)
-			, numericInput('MaxT',          'Maximum Time - numeric [0, 2000]:', value=50)
-			, actionButton('go',            'New Simulation', icon("random"))
-			, checkboxInput('MDScaleFlag',  'Scale mismatch distribution', FALSE)
-			, checkboxInput('FSScaleFlag',  'Scale frequency spectrum', FALSE)
+			wellPanel(
+				  numericInput('n',             'Sample size - integer [3, 100]:', value=30)
+				, numericInput('Theta0',        'Theta0 - numeric [0.0, 100.0]:', value=10.0)
+				, numericInput('GrowthFactor',  'GrowthFactor - numeric [0.000001, 1000000]:', value=1.0)
+				, numericInput('Tau',           'Tau - numeric [0, 1000]:', value=15)
+				, numericInput('MaxT',          'Maximum Time - numeric [0, 2000]:', value=50)
+				, actionButton('go',            'New Simulation', icon("random"))
+			)
+			, wellPanel(
+				checkboxInput('MDScaleFlag',  'Scale mismatch distribution', FALSE)
+				, checkboxInput('FSScaleFlag',  'Scale frequency spectrum', FALSE)
+			)
 		),
 
 
