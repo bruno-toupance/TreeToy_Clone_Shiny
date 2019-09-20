@@ -1,6 +1,6 @@
 #==============================================================================
 #    ui.R : TreeToy_Clone_Shiny User-Interface
-#    Copyright (C) 2017  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    Copyright (C) 2019  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -36,16 +36,18 @@ shinyUI(
 #------------------------------------------------------------------------------
 		sidebarPanel(
 			wellPanel(
-				  numericInput('n',             'Sample size - integer [3, 100]:', value=30)
-				, numericInput('Theta0',        'Theta0 - numeric [0.0, 100.0]:', value=10.0)
-				, numericInput('GrowthFactor',  'GrowthFactor - numeric [0.000001, 1000000]:', value=1.0)
-				, numericInput('Tau',           'Tau - numeric [0, 1000]:', value=15)
-				, numericInput('MaxT',          'Maximum Time - numeric [0, 2000]:', value=50)
-				, actionButton('go',            'New Simulation', icon("random"))
+				  numericInput(inputId='n',             label='Sample size - integer [min=3 - max=100]:', value=30)
+				, numericInput(inputId='Theta0',        label='Theta0 - numeric:', value=10.0)
+				, numericInput(inputId='GrowthFactor',  label='GrowthFactor - numeric:', value=1.0)
+				, numericInput(inputId='Tau',           label='Tau - numeric:', value=15)
+				, actionButton(inputId='go',            label='New Simulation', icon("random"))
 			)
 			, wellPanel(
-				checkboxInput('MDScaleFlag',  'Scale mismatch distribution', FALSE)
-				, checkboxInput('FSScaleFlag',  'Scale frequency spectrum', FALSE)
+				  numericInput(inputId='MaxT',          label='Maximum Time - numeric:', value=50)
+				, checkboxInput(inputId='MDScaleFlag',  label='Scale mismatch distribution Y axis', FALSE)
+				, checkboxInput(inputId='TimeScaleFlag',label='Scale time X axis', FALSE)
+				, checkboxInput(inputId='FSScaleFlag',  label='Scale frequency spectrum Y axis', FALSE)
+				, checkboxInput(inputId='DAFScaleFlag', label='Scale DAF X axis', FALSE)
 			)
 		),
 
@@ -55,8 +57,8 @@ shinyUI(
 #------------------------------------------------------------------------------
 		mainPanel(
 			tabsetPanel(
-				type="tabs"
-				, tabPanel("MainPlot", plotOutput("MainPlot", height = "600px"))
+				  type="tabs"
+				, tabPanel(title="MainPlot", plotOutput(outputId="MainPlot", height="600px"))
 			)
 		)
 #------------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 #==============================================================================
 #    server.R : TreeToy_Clone_Shiny Server
-#    Copyright (C) 2017  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    Copyright (C) 2019  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -28,15 +28,29 @@ shinyServer(
 	function(input, output, session) {
 
 #------------------------------------------------------------------------------
-		DATA <- eventReactive(input$go, {
-			simulate_coal_tree(n=input$n, Theta0=input$Theta0, GrowthFactor=input$GrowthFactor, Tau=input$Tau)
+		CoalTree <- reactive({
+			Tmp <- input$go
+			return(simulate_coal_tree(
+				n=input$n, 
+				Theta0=input$Theta0, 
+				GrowthFactor=input$GrowthFactor, 
+				Tau=input$Tau))
 		})
 #------------------------------------------------------------------------------
 
 
 #------------------------------------------------------------------------------
 		output$MainPlot <- renderPlot({
-			PLOT <- DoPlot(DATA(), n=input$n, Theta0=input$Theta0, GrowthFactor=input$GrowthFactor, Tau=input$Tau, MaxT=input$MaxT, MDScaleFlag=input$MDScaleFlag, FSScaleFlag=input$FSScaleFlag)
+			Plot <- DoPlot(CoalTree(), 
+				n=input$n, 
+				Theta0=input$Theta0, 
+				GrowthFactor=input$GrowthFactor, 
+				Tau=input$Tau, 
+				MaxT=input$MaxT, 
+				MDScaleFlag=input$MDScaleFlag, 
+				TimeScaleFlag=input$TimeScaleFlag,
+				FSScaleFlag=input$FSScaleFlag,
+				DAFScaleFlag=input$DAFScaleFlag)
 		})
 #------------------------------------------------------------------------------
 
