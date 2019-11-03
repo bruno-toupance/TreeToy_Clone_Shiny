@@ -43,7 +43,7 @@ find_position <- function(CoalTree, Pos, i)
 #==============================================================================
 # draw_coal_tree
 #==============================================================================
-draw_coal_tree <- function(CoalTree, MaxT=3)
+draw_coal_tree <- function(CoalTree, MaxT=3, ColorFlag=FALSE)
 {
 #------------------------------------------------------------------------------
 	m <- nrow(CoalTree)
@@ -53,6 +53,12 @@ draw_coal_tree <- function(CoalTree, MaxT=3)
 	y <- find_position(CoalTree, y, m)
 	x <- CoalTree$Height
 #------------------------------------------------------------------------------
+	if (ColorFlag) {
+		Color <- rainbow(n-1, start=0, end=0.7)
+	} else {
+		Color <- rep("gray", n-1)
+	}
+#------------------------------------------------------------------------------
 	BoxY <- c(1, n)
 	BoxX <- c(0, MaxT)
 	par(mar=c(bottom=0.5+4,left=0.5+4,top=0.5+2,right=0.5))
@@ -60,8 +66,9 @@ draw_coal_tree <- function(CoalTree, MaxT=3)
 #------------------------------------------------------------------------------
 	for (i in 1:(2*n-2)) {
 		Parent <- CoalTree$Parent[i]
-		segments(x[i], y[i], x[Parent], y[i], col="grey", lwd=2)
-		segments(x[Parent], y[i], x[Parent], y[Parent], col="grey", lwd=2)
+		segments(x[i], y[i], x[Parent], y[i], col=Color[CoalTree$NbLeaf[i]], 
+			lwd=2)
+		segments(x[Parent], y[i], x[Parent], y[Parent], col="gray", lwd=2)
 	}
 #------------------------------------------------------------------------------
 	points(x[m], y[m], pch=15, col="gray", cex=1)  # TMRCA
@@ -122,6 +129,8 @@ compute_mismatch_distribution <- function(CoalTree)
 draw_mismatch_distribution <- function(CoalTree, MaxT=3, MDScaleFlag=FALSE)
 {
 #------------------------------------------------------------------------------
+	m <- nrow(CoalTree)
+	n <- (m+1)/2
 	Tab <- compute_mismatch_distribution(CoalTree)
 	Tab <- prop.table(Tab)
 	x <- as.numeric(names(Tab))
@@ -134,11 +143,11 @@ draw_mismatch_distribution <- function(CoalTree, MaxT=3, MDScaleFlag=FALSE)
 		}
 	}
 	par(mar=c(bottom=0.5+4,left=0.5+4,top=0.5+2,right=0.5))
-	plot(x, y, type="h", xlim=c(0, MaxT), ylim=c(0, MaxY), lwd=2, col="grey", 
+	plot(x, y, type="h", xlim=c(0, MaxT), ylim=c(0, MaxY), lwd=2, col="gray", 
 		main="", xlab="", ylab="")
-	points(x, y, pch=15, col="grey", cex=1)
+	points(x, y, pch=15, col="gray", cex=1)
 	MeanMD <- sum(x*y)
-	abline(v=MeanMD, col="grey", lty=2)
+	abline(v=MeanMD, col="gray", lty=2)
 	text(MaxT, 0.95*MaxY, sprintf("Mean = %.3f", MeanMD), pos=2)
 	title(main="Mismatch Distribution")
 	title(xlab="Number of pairwise differences")
@@ -203,7 +212,7 @@ compute_SFS_stat <- function(Ksi_i)
 # draw_frequency_spectrum
 #==============================================================================
 draw_frequency_spectrum <- function(CoalTree, FSScaleFlag=FALSE, 
-	DAFScaleFlag=FALSE)
+	DAFScaleFlag=FALSE, ColorFlag=FALSE)
 {
 #------------------------------------------------------------------------------
 	m <- nrow(CoalTree)
@@ -217,10 +226,18 @@ draw_frequency_spectrum <- function(CoalTree, FSScaleFlag=FALSE,
 	Ex <- i
 	Ey <- 1/Ex; Ey <- Ey/sum(Ey)
 #------------------------------------------------------------------------------
+	if (ColorFlag) {
+		Color <- rainbow(n-1, start=0, end=0.7)
+	} else {
+		Color <- rep("gray", n-1)
+	}
+#------------------------------------------------------------------------------
 	x <- i
 	y <- Ksi_i
 	x <- x[(Ksi_i != 0)]
 	y <- y[(Ksi_i != 0)]
+#------------------------------------------------------------------------------
+	Color <- Color[(Ksi_i != 0)]
 #------------------------------------------------------------------------------
 	if (Stat$S != 0) {
 		y <- y/Stat$S
@@ -237,9 +254,9 @@ draw_frequency_spectrum <- function(CoalTree, FSScaleFlag=FALSE,
 	}
 #------------------------------------------------------------------------------
 	par(mar=c(bottom=0.5+4,left=0.5+4,top=0.5+2,right=0.5))
-	plot(x, y, type="h", xlim=c(1, MaxX), ylim=c(0, MaxY), lwd=2, col="grey", 
+	plot(x, y, type="h", xlim=c(1, MaxX), ylim=c(0, MaxY), lwd=2, col=Color, 
 		main="", xlab="", ylab="")
-	points(x, y, pch=15, col="grey", cex=1)
+	points(x, y, pch=15, col="gray", cex=1)
 #------------------------------------------------------------------------------
 	points(Ex, Ey, pch=15, col="black", cex=1)  # Expected SFS
 #------------------------------------------------------------------------------
@@ -278,8 +295,8 @@ draw_demography <- function(Theta0=10.0, GrowthFactor=1.0, Tau=15.0, MaxT=30)
 			lty=1, col="red", lwd=3)
 	} else {
 		if (GrowthFactor < 1.0) {
-			lines(c(0, Tau, Tau, MaxT), Theta0*c(GrowthFactor, GrowthFactor, 1, 1), 
-				lty=1, col="blue", lwd=3)
+			lines(c(0, Tau, Tau, MaxT), Theta0*c(GrowthFactor, 
+				GrowthFactor, 1, 1), lty=1, col="blue", lwd=3)
 		} else {
 			lines(c(0, MaxT), c(Theta0, Theta0), lty=1, col="black", lwd=3)
 		}
@@ -415,8 +432,8 @@ simulate_coal_tree <- function(n=30, Theta0=10.0, GrowthFactor=1.0, Tau=15.0,
 # DoPlot
 #==============================================================================
 DoPlot <- function(CoalTree, n, Theta0, GrowthFactor, Tau, MaxT, 
-	MDScaleFlag=FALSE, TimeScaleFlag=FALSE, 
-	FSScaleFlag=FALSE, DAFScaleFlag=FALSE)
+	MDScaleFlag=FALSE, TimeScaleFlag=FALSE, FSScaleFlag=FALSE, 
+	DAFScaleFlag=FALSE, ColorFlag=FALSE)
 {
 #------------------------------------------------------------------------------
 	ParamChecking <- check_parameters(n=n, Theta0=Theta0, 
@@ -433,7 +450,7 @@ DoPlot <- function(CoalTree, n, Theta0, GrowthFactor, Tau, MaxT,
 				MaxT = MaxMD
 			}
 		}
-		draw_coal_tree(CoalTree, MaxT=MaxT)
+		draw_coal_tree(CoalTree, MaxT=MaxT, ColorFlag=ColorFlag)
 		if (GrowthFactor > 1.0) {
 			abline(v=Tau, col="red", lty=2)
 		} else {
@@ -451,7 +468,7 @@ DoPlot <- function(CoalTree, n, Theta0, GrowthFactor, Tau, MaxT,
 		draw_mismatch_distribution(CoalTree, MaxT=MaxT, 
 			MDScaleFlag=MDScaleFlag)
 		draw_frequency_spectrum(CoalTree, FSScaleFlag=FSScaleFlag, 
-			DAFScaleFlag=DAFScaleFlag)
+			DAFScaleFlag=DAFScaleFlag, ColorFlag=ColorFlag)
 	
 		layout(1)
 #------------------------------------------------------------------------------
@@ -471,17 +488,19 @@ DoPlot <- function(CoalTree, n, Theta0, GrowthFactor, Tau, MaxT,
 # DoIt
 #==============================================================================
 DoIt <- function(n=30, Theta0=10.0, GrowthFactor=1.0, Tau=15.0, MaxT=30, 
-	MDScaleFlag=FALSE, FSScaleFlag=FALSE, TimeScaleFlag=FALSE) 
+	MDScaleFlag=FALSE, FSScaleFlag=FALSE, TimeScaleFlag=FALSE, 
+	ColorFlag=FALSE) 
 {
 #------------------------------------------------------------------------------
 	CoalTree <- simulate_coal_tree(n=n, Theta0=Theta0, 
 		GrowthFactor=GrowthFactor, Tau=Tau)
 	DoPlot(CoalTree, n=n, Theta0=Theta0, GrowthFactor=GrowthFactor, Tau=Tau, 
-		MaxT, MDScaleFlag, FSScaleFlag, TimeScaleFlag)
+		MaxT=MaxT, MDScaleFlag=MDScaleFlag, FSScaleFlag=FSScaleFlag, 
+		TimeScaleFlag=TimeScaleFlag, ColorFlag=ColorFlag)
 #------------------------------------------------------------------------------
 }
 #==============================================================================
 
 
-# n <- 30; Theta0 <- 10.0; GrowthFactor <- 1.0; Tau <- 15.0; MaxT <- 30; MDScaleFlag <- TRUE; FSScaleFlag <- TRUE
-# DoIt(n=n, Theta0=Theta0, GrowthFactor=GrowthFactor, Tau=Tau, MaxT=MaxT, MDScaleFlag=MDScaleFlag, FSScaleFlag=FSScaleFlag)
+# n <- 30; Theta0 <- 10.0; GrowthFactor <- 1.0; Tau <- 15.0; MaxT <- 30; MDScaleFlag <- TRUE; FSScaleFlag <- TRUE; ColorFlag <- TRUE
+# DoIt(n=n, Theta0=Theta0, GrowthFactor=GrowthFactor, Tau=Tau, MaxT=MaxT, MDScaleFlag=MDScaleFlag, FSScaleFlag=FSScaleFlag, ColorFlag=ColorFlag)

@@ -50,7 +50,8 @@ shinyServer(
 				MDScaleFlag=input$MDScaleFlag, 
 				TimeScaleFlag=input$TimeScaleFlag,
 				FSScaleFlag=input$FSScaleFlag,
-				DAFScaleFlag=input$DAFScaleFlag)
+				DAFScaleFlag=input$DAFScaleFlag,
+				ColorFlag=input$ColorFlag)
 		})
 #------------------------------------------------------------------------------
 

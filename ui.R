@@ -48,6 +48,7 @@ shinyUI(
 				, checkboxInput(inputId='TimeScaleFlag',label='Scale time X axis', FALSE)
 				, checkboxInput(inputId='FSScaleFlag',  label='Scale frequency spectrum Y axis', FALSE)
 				, checkboxInput(inputId='DAFScaleFlag', label='Scale DAF X axis', FALSE)
+				, checkboxInput(inputId='ColorFlag',    label='Branch colors', FALSE)
 			)
 		),
 
