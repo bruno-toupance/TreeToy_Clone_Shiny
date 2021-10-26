@@ -1,6 +1,6 @@
 #==============================================================================
 #    server.R : TreeToy_Clone_Shiny Server
-#    Copyright (C) 2019  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    Copyright (C) 2021  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@ shinyServer(
 		CoalTree <- reactive({
 			Tmp <- input$go
 			return(simulate_coal_tree(
-				n=input$n, 
-				Theta0=input$Theta0, 
-				GrowthFactor=input$GrowthFactor, 
-				Tau=input$Tau))
+				n = input$n, 
+				Theta0 = input$Theta0, 
+				GrowthFactor = input$GrowthFactor, 
+				Tau = input$Tau))
 		})
 #------------------------------------------------------------------------------
 
@@ -42,16 +42,16 @@ shinyServer(
 #------------------------------------------------------------------------------
 		output$MainPlot <- renderPlot({
 			Plot <- DoPlot(CoalTree(), 
-				n=input$n, 
-				Theta0=input$Theta0, 
-				GrowthFactor=input$GrowthFactor, 
-				Tau=input$Tau, 
-				MaxT=input$MaxT, 
-				MDScaleFlag=input$MDScaleFlag, 
-				TimeScaleFlag=input$TimeScaleFlag,
-				FSScaleFlag=input$FSScaleFlag,
-				DAFScaleFlag=input$DAFScaleFlag,
-				ColorFlag=input$ColorFlag)
+				n = input$n, 
+				Theta0 = input$Theta0, 
+				GrowthFactor = input$GrowthFactor, 
+				Tau = input$Tau, 
+				MaxT = input$MaxT, 
+				MDScaleFlag = input$MDScaleFlag, 
+				TimeScaleFlag = input$TimeScaleFlag,
+				FSScaleFlag = input$FSScaleFlag,
+				DAFScaleFlag = input$DAFScaleFlag,
+				ColorFlag = input$ColorFlag)
 		})
 #------------------------------------------------------------------------------
 
