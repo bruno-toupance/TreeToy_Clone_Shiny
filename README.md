@@ -15,6 +15,6 @@ install.packages("shiny")
 
 ## Run from R
 ```{r }
-require(shiny)
-runGitHub("TreeToy_Clone_Shiny", "bruno-toupance")
+library("shiny")
+runGitHub(repo = "TreeToy_Clone_Shiny", username = "bruno-toupance", ref = "main")
 ```

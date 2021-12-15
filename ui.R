@@ -16,7 +16,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #==============================================================================
 
-library(shiny)
+library("shiny")
 
 
 #==============================================================================
@@ -28,7 +28,6 @@ shinyUI(
 
 #------------------------------------------------------------------------------
 		headerPanel("TreeToy Clone"),
-#------------------------------------------------------------------------------
 
 
 #------------------------------------------------------------------------------
@@ -36,19 +35,19 @@ shinyUI(
 #------------------------------------------------------------------------------
 		sidebarPanel(
 			wellPanel(
-				numericInput(inputId = 'n', label = 'Sample size - integer [min = 3 - max = 100]:', value = 30)
-				, numericInput(inputId = 'Theta0', label = 'Theta0 - numeric:', value = 10.0)
-				, numericInput(inputId = 'GrowthFactor', label = 'GrowthFactor - numeric:', value = 1.0)
-				, numericInput(inputId = 'Tau', label = 'Tau - numeric:', value = 15)
-				, actionButton(inputId = 'go', label = 'New Simulation', icon("random"))
-			)
-			, wellPanel(
-				numericInput(inputId = 'MaxT', label = 'Maximum Time - numeric:', value = 50)
-				, checkboxInput(inputId = 'MDScaleFlag', label = 'Scale mismatch distribution Y axis', FALSE)
-				, checkboxInput(inputId = 'TimeScaleFlag',label = 'Scale time X axis', FALSE)
-				, checkboxInput(inputId = 'FSScaleFlag', label = 'Scale frequency spectrum Y axis', FALSE)
-				, checkboxInput(inputId = 'DAFScaleFlag', label = 'Scale DAF X axis', FALSE)
-				, checkboxInput(inputId = 'ColorFlag', label = 'Branch colors', FALSE)
+				numericInput(inputId = 'param_n', label = 'Sample size - integer [min = 2 - max = 100]:', value = 30),
+				numericInput(inputId = 'param_theta_0', label = 'Theta_0 - numeric:', value = 10.0),
+				numericInput(inputId = 'param_growth_factor', label = 'Growth Factor - numeric:', value = 1.0),
+				numericInput(inputId = 'param_tau', label = 'Tau - numeric:', value = 15),
+				actionButton(inputId = 'go', label = 'New Simulation', icon("random"))
+			),
+			wellPanel(
+				numericInput(inputId = 'max_time', label = 'Maximum Time - numeric:', value = 50),
+				checkboxInput(inputId = 'time_scale_flag',label = 'Scale time X axis', FALSE),
+				checkboxInput(inputId = 'MD_Y_scale_flag', label = 'Scale mismatch distribution Y axis', FALSE),
+				checkboxInput(inputId = 'DAF_X_scale_flag', label = 'Scale DAF X axis', FALSE),
+				checkboxInput(inputId = 'DAF_Y_scale_flag', label = 'Scale DAF Y axis', FALSE),
+				checkboxInput(inputId = 'branch_color_flag', label = 'Branch colors', FALSE)
 			)
 		),
 
@@ -58,11 +57,10 @@ shinyUI(
 #------------------------------------------------------------------------------
 		mainPanel(
 			tabsetPanel(
-				type = "tabs"
-				, tabPanel(title = "MainPlot", plotOutput(outputId = "MainPlot", height = "600px"))
+				type = "tabs",
+				tabPanel(title = "MainPlot", plotOutput(outputId = "MainPlot", height = "600px"))
 			)
 		)
-#------------------------------------------------------------------------------
 
 	)
 )

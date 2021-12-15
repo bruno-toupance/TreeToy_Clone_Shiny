@@ -17,7 +17,7 @@
 #==============================================================================
 
 
-library(shiny)
+library("shiny")
 
 source("TreeToy_Clone.R")
 
@@ -28,32 +28,39 @@ shinyServer(
 	function(input, output, session) {
 
 #------------------------------------------------------------------------------
-		CoalTree <- reactive({
-			Tmp <- input$go
-			return(simulate_coal_tree(
-				n = input$n, 
-				Theta0 = input$Theta0, 
-				GrowthFactor = input$GrowthFactor, 
-				Tau = input$Tau))
-		})
-#------------------------------------------------------------------------------
+		coal_tree <- reactive(
+			{
+				tmp <- input$go
+				return(
+					simulate_coal_tree(
+					param_n = input$param_n, 
+					param_theta_0 = input$param_theta_0, 
+					param_growth_factor = input$param_growth_factor, 
+					param_tau = input$param_tau)
+				)
+			}
+		)
 
 
 #------------------------------------------------------------------------------
-		output$MainPlot <- renderPlot({
-			Plot <- DoPlot(CoalTree(), 
-				n = input$n, 
-				Theta0 = input$Theta0, 
-				GrowthFactor = input$GrowthFactor, 
-				Tau = input$Tau, 
-				MaxT = input$MaxT, 
-				MDScaleFlag = input$MDScaleFlag, 
-				TimeScaleFlag = input$TimeScaleFlag,
-				FSScaleFlag = input$FSScaleFlag,
-				DAFScaleFlag = input$DAFScaleFlag,
-				ColorFlag = input$ColorFlag)
-		})
-#------------------------------------------------------------------------------
+		output$MainPlot <- renderPlot(
+			{
+				Plot <- DoPlot(
+					coal_tree(), 
+					param_n = input$param_n, 
+					param_theta_0 = input$param_theta_0, 
+					param_growth_factor = input$param_growth_factor, 
+					param_tau = input$param_tau, 
+					max_time = input$max_time, 
+					time_scale_flag = input$time_scale_flag,
+					MD_Y_scale_flag = input$MD_Y_scale_flag, 
+					DAF_X_scale_flag = input$DAF_X_scale_flag,
+					DAF_Y_scale_flag = input$DAF_Y_scale_flag,
+					branch_color_flag = input$branch_color_flag
+				)
+			}
+		)
+
 
 	}
 )

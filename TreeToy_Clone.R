@@ -21,19 +21,19 @@
 #==============================================================================
 # INTERNAL FUNCTION - find_position
 #==============================================================================
-find_position <- function(CoalTree, Pos, i)
+find_position <- function(coal_tree, pos_vec, i)
 {
 #------------------------------------------------------------------------------
-	Child <- which(CoalTree$Parent == i)
-	if (length(Child) == 0) {
-		Pos[i] <- max(Pos) + 1
+	child_vec <- which(coal_tree$parent == i)
+	if (length(child_vec) == 0) {
+		pos_vec[i] <- max(pos_vec) + 1
 	} else {
-		for (j in 1:length(Child)) {
-			Pos <- find_position(CoalTree, Pos, Child[j])
+		for (j in 1:length(child_vec)) {
+			pos_vec <- find_position(coal_tree, pos_vec, child_vec[j])
 		}
-		Pos[i] <- mean(Pos[Child])
+		pos_vec[i] <- mean(pos_vec[child_vec])
 	}
-	return(Pos)
+	return(pos_vec)
 #------------------------------------------------------------------------------
 }
 #==============================================================================
@@ -43,39 +43,42 @@ find_position <- function(CoalTree, Pos, i)
 #==============================================================================
 # draw_coal_tree
 #==============================================================================
-draw_coal_tree <- function(CoalTree, MaxT = 3, ColorFlag = FALSE)
+draw_coal_tree <- function(coal_tree, max_time = 3, branch_color_flag = FALSE)
 {
 #------------------------------------------------------------------------------
-	m <- nrow(CoalTree)
-	n <- (m + 1) / 2
+	nb_node <- nrow(coal_tree)
+	n <- (nb_node + 1) / 2
+	root_i <- nb_node
 #------------------------------------------------------------------------------
-	y <- rep(0, m)
-	y <- find_position(CoalTree, y, m)
-	x <- CoalTree$Height
+	y <- rep(0, times = nb_node)
+	y <- find_position(coal_tree, y, root_i)
+	x <- coal_tree$height
 #------------------------------------------------------------------------------
-	if (ColorFlag) {
-		Color <- rainbow(n - 1, start = 0, end = 0.7)
+	if (branch_color_flag) {
+		branch_col <- rainbow(n - 1, start = 0, end = 0.7)
 	} else {
-		Color <- rep("gray", n - 1)
+		branch_col <- rep("gray", n - 1)
 	}
 #------------------------------------------------------------------------------
-	BoxY <- c(1, n)
-	BoxX <- c(0, MaxT)
+	box_y <- c(1, n)
+	box_x <- c(0, max_time)
 	par(mar = c(bottom = 0.5 + 4, left = 0.5 + 4, top = 0.5 + 2, right = 0.5))
-	plot(BoxX, BoxY, type = "n", yaxt = "n", bty = "n", main = "", xlab = "", ylab = "")
+	plot(box_x, box_y, type = "n", yaxt = "n", bty = "n", main = "", xlab = "", ylab = "")
 #------------------------------------------------------------------------------
 	for (i in 1:(2 * n - 2)) {
-		Parent <- CoalTree$Parent[i]
-		segments(x[i], y[i], x[Parent], y[i], col = Color[CoalTree$NbLeaf[i]], 
-			lwd = 2)
-		segments(x[Parent], y[i], x[Parent], y[Parent], col = "gray", lwd = 2)
+		parent <- coal_tree$parent[i]
+		segments(x[i], y[i], x[parent], y[i], 
+			col = branch_col[coal_tree$nb_leaf[i]], lwd = 2)
+		segments(x[parent], y[i], x[parent], y[parent], 
+			col = "gray", lwd = 2)
 	}
 #------------------------------------------------------------------------------
-	points(x[m], y[m], pch = 15, col = "gray", cex = 1)  # TMRCA
+	points(x[root_i], y[root_i], pch = 15, col = "gray", cex = 1)  # TMRCA
 #------------------------------------------------------------------------------
 	title(main = "Coalescence Tree")
-	title(xlab = "2ut")
-	text(MaxT, n * 0.95, sprintf("TMRCA = %.2f", CoalTree$Height[m]), pos = 2)
+	title(xlab = "2 x ut")
+	text(max_time, n * 0.95, pos = 2, 
+		sprintf("TMRCA = %.2f", coal_tree$height[root_i]))
 #------------------------------------------------------------------------------
 }
 #==============================================================================
@@ -85,20 +88,24 @@ draw_coal_tree <- function(CoalTree, MaxT = 3, ColorFlag = FALSE)
 #==============================================================================
 # compute_pairwise_difference
 #==============================================================================
-compute_pairwise_difference <- function(CoalTree, i, j)
+compute_pairwise_difference <- function(coal_tree, i, j)
 {
 #------------------------------------------------------------------------------
-	p1 <- CoalTree$Parent[i]; m1 <- CoalTree$Mutation[i]
-	p2 <- CoalTree$Parent[j]; m2 <- CoalTree$Mutation[j]
-	while (p1 != p2) {
-		if (CoalTree$Height[p1] < CoalTree$Height[p2]) {
-			m1 <- m1 + CoalTree$Mutation[p1]; p1 <- CoalTree$Parent[p1]
+	par_i <- coal_tree$parent[i]
+	mut_i <- coal_tree$nb_mut[i]
+	par_j <- coal_tree$parent[j]
+	mut_j <- coal_tree$nb_mut[j]
+	while (par_i != par_j) {
+		if (coal_tree$height[par_i] < coal_tree$height[par_j]) {
+			mut_i <- mut_i + coal_tree$nb_mut[par_i]
+			par_i <- coal_tree$parent[par_i]
 		} else {
-			m2 <- m2 + CoalTree$Mutation[p2]; p2 <- CoalTree$Parent[p2]
+			mut_j <- mut_j + coal_tree$nb_mut[par_j]
+			par_j <- coal_tree$parent[par_j]
 		}
 	}
 #------------------------------------------------------------------------------
-	return(m1 + m2)
+	return(mut_i + mut_j)
 #------------------------------------------------------------------------------
 }
 #==============================================================================
@@ -108,15 +115,18 @@ compute_pairwise_difference <- function(CoalTree, i, j)
 #==============================================================================
 # compute_mismatch_distribution
 #==============================================================================
-compute_mismatch_distribution <- function(CoalTree)
+compute_mismatch_distribution <- function(coal_tree)
 {
 #------------------------------------------------------------------------------
-	m <- nrow(CoalTree)
-	n <- (m + 1) / 2
-	NbDiff <- combn(n, m = 2, FUN = function(pair){ 
-		compute_pairwise_difference(CoalTree, pair[1], pair[2]) } )
+	nb_node <- nrow(coal_tree)
+	n <- (nb_node + 1) / 2
+	nb_diff <- combn(x = n, m = 2, 
+			FUN = function(xy){ 
+				compute_pairwise_difference(coal_tree, xy[1], xy[2])
+			}
+		)
 #------------------------------------------------------------------------------
-	return(table(NbDiff))
+	return(table(nb_diff))
 #------------------------------------------------------------------------------
 }
 #==============================================================================
@@ -126,33 +136,35 @@ compute_mismatch_distribution <- function(CoalTree)
 #==============================================================================
 # draw_mismatch_distribution
 #==============================================================================
-draw_mismatch_distribution <- function(CoalTree, MaxT = 3, MDScaleFlag = FALSE)
+draw_mismatch_distribution <- function(coal_tree, max_time = 3, MD_Y_scale_flag = FALSE)
 {
-#------------------------------------------------------------------------------
-	m <- nrow(CoalTree)
-	n <- (m + 1) / 2
-	Tab <- compute_mismatch_distribution(CoalTree)
-	Tab <- prop.table(Tab)
-	x <- as.numeric(names(Tab))
-	y <- as.vector(Tab)
-	MaxY <- 1
-	if (MDScaleFlag) {
-		MaxY <- max(y)
-		if (MaxY == 0) {
-			MaxY <- 1
+	nb_node <- nrow(coal_tree)
+	n <- (nb_node + 1) / 2
+	MD_tab <- compute_mismatch_distribution(coal_tree)
+	MD_tab <- prop.table(MD_tab)
+	x <- as.numeric(names(MD_tab))
+	y <- as.vector(MD_tab)
+	max_y <- 1
+	if (MD_Y_scale_flag) {
+		max_y <- max(y)
+		if (max_y == 0) {
+			max_y <- 1
 		}
 	}
 	par(mar = c(bottom = 0.5 + 4, left = 0.5 + 4, top = 0.5 + 2, right = 0.5))
-	plot(x, y, type = "h", xlim = c(0, MaxT), ylim = c(0, MaxY), lwd = 2, col = "gray", 
+
+	plot(x, y, type = "h", xlim = c(0, max_time), ylim = c(0, max_y), 
+		lwd = 2, col = "gray", 
 		main = "", xlab = "", ylab = "")
 	points(x, y, pch = 15, col = "gray", cex = 1)
-	MeanMD <- sum(x * y)
-	abline(v = MeanMD, col = "gray", lty = 2)
-	text(MaxT, 0.95 * MaxY, sprintf("Mean = %.3f", MeanMD), pos = 2)
+	
+	mean_MD <- sum(x * y)
+	abline(v = mean_MD, col = "gray", lty = 2)
+	text(max_time, 0.95 * max_y, sprintf("Mean = %.3f", mean_MD), pos = 2)
+	
 	title(main = "Mismatch Distribution")
 	title(xlab = "Number of pairwise differences")
 	title(ylab = "Frequency")
-#------------------------------------------------------------------------------
 }
 #==============================================================================
 
@@ -161,9 +173,8 @@ draw_mismatch_distribution <- function(CoalTree, MaxT = 3, MDScaleFlag = FALSE)
 #==============================================================================
 # compute_Tajima_D
 #==============================================================================
-compute_Tajima_D <- function(n, Pi, S)
+compute_Tajima_D <- function(n, stat_pi, stat_S)
 {
-#------------------------------------------------------------------------------
 	i <- 1:(n - 1)
 	a1 <- sum(1 / i)
 	a2 <- sum(1 / i^2)
@@ -173,10 +184,9 @@ compute_Tajima_D <- function(n, Pi, S)
 	c2 <- b2 - (n + 2) / (a1 * n) + a2 / a1^2
 	e1 <- c1 / a1
 	e2 <- (c2) / (a1^2 + a2)
-	TajD <- (Pi - S / a1) / sqrt(e1 * S + e2 * S * (S - 1))
-#------------------------------------------------------------------------------
-	return(TajD)
-#------------------------------------------------------------------------------
+	stat_tajima_D <- (stat_pi - stat_S / a1) / sqrt(e1 * stat_S + e2 * stat_S * (stat_S - 1))
+
+	return(stat_tajima_D)
 }
 #==============================================================================
 
@@ -185,24 +195,22 @@ compute_Tajima_D <- function(n, Pi, S)
 #==============================================================================
 # compute_SFS_stat
 #==============================================================================
-compute_SFS_stat <- function(Ksi_i)
+compute_SFS_stat <- function(ksi_i)
 {
-#------------------------------------------------------------------------------
-	n <- length(Ksi_i) + 1
+	n <- length(ksi_i) + 1
 	i <- 1:(n - 1)
 	a1 <- sum(1 / i)
 	a2 <- sum(1 / i^2)
-	S <- sum(Ksi_i)
-	ThetaS <- S / a1
-	Pi <- sum(Ksi_i * i * (n - i)) / choose(n, 2)
-	ThetaPi <- Pi
-	Eta <- Ksi_i[1]
-	TajD <- compute_Tajima_D(n, Pi, S)
-#------------------------------------------------------------------------------
-	return(list(S = S, Pi = Pi, Eta = Eta, 
-		ThetaS = ThetaS, ThetaPi = ThetaPi, 
-		TajD = TajD))
-#------------------------------------------------------------------------------
+	stat_S <- sum(ksi_i)
+	stat_theta_S <- stat_S / a1
+	stat_pi <- sum(ksi_i * i * (n - i)) / choose(n, 2)
+	stat_theta_pi <- stat_pi
+	stat_eta <- ksi_i[1]
+	stat_tajima_D <- compute_Tajima_D(n, stat_pi, stat_S)
+
+	return(list(stat_S = stat_S, stat_pi = stat_pi, stat_eta = stat_eta, 
+		stat_theta_S = stat_theta_S, stat_theta_pi = stat_theta_pi, 
+		stat_tajima_D = stat_tajima_D))
 }
 #==============================================================================
 
@@ -211,67 +219,87 @@ compute_SFS_stat <- function(Ksi_i)
 #==============================================================================
 # draw_frequency_spectrum
 #==============================================================================
-draw_frequency_spectrum <- function(CoalTree, FSScaleFlag = FALSE, 
-	DAFScaleFlag = FALSE, ColorFlag = FALSE)
+draw_frequency_spectrum <- function(coal_tree, 
+	DAF_Y_scale_flag = FALSE, DAF_X_scale_flag = FALSE, 
+	branch_color_flag = FALSE, std_flag = FALSE)
 {
 #------------------------------------------------------------------------------
-	m <- nrow(CoalTree)
-	n <- (m + 1) / 2
-	DAF <- rep(CoalTree$NbLeaf[-m], CoalTree$Mutation[-m])
+	nb_node <- nrow(coal_tree)
+	n <- (nb_node + 1) / 2
+	stat_DAF <- rep(coal_tree$nb_leaf[-nb_node], coal_tree$nb_mut[-nb_node])
 	i <- 1:(n - 1)
-	Ksi_i <- as.numeric(table(factor(DAF, levels = i)))
-	Stat <- compute_SFS_stat(Ksi_i)
-	# print(str(Stat))
+	ksi_i <- as.numeric(table(factor(stat_DAF, levels = i)))
+	stat <- compute_SFS_stat(ksi_i)
+	# print(str(stat))
 #------------------------------------------------------------------------------
 	Ex <- i
-	Ey <- 1 / Ex; Ey <- Ey / sum(Ey)
+	Ey <- 1 / Ex
+	Ey <- Ey / sum(Ey)
 #------------------------------------------------------------------------------
-	if (ColorFlag) {
-		Color <- rainbow(n - 1, start = 0, end = 0.7)
+	if (std_flag) {
+		ksi_i <- ksi_i / Ey
+		Ey <- Ey / Ey
+	}
+#------------------------------------------------------------------------------
+	if (branch_color_flag) {
+		branch_col <- rainbow(n - 1, start = 0, end = 0.7)
 	} else {
-		Color <- rep("gray", n - 1)
+		branch_col <- rep("gray", n - 1)
 	}
 #------------------------------------------------------------------------------
 	x <- i
-	y <- Ksi_i
-	x <- x[(Ksi_i != 0)]
-	y <- y[(Ksi_i != 0)]
+	y <- ksi_i
+	x <- x[(ksi_i != 0)]
+	y <- y[(ksi_i != 0)]
 #------------------------------------------------------------------------------
-	Color <- Color[(Ksi_i != 0)]
+	branch_col <- branch_col[(ksi_i != 0)]
 #------------------------------------------------------------------------------
-	if (Stat$S != 0) {
-		y <- y / Stat$S
+	if (stat$stat_S != 0) {
+		y <- y / stat$stat_S
 	}
 #------------------------------------------------------------------------------
-	MaxX <- n - 1
-	if (DAFScaleFlag) {
-		MaxX <- max(x)
+	max_x <- n - 1
+	if (DAF_X_scale_flag) {
+		max_x <- max(x)
 	}
 #------------------------------------------------------------------------------
-	MaxY <- 1
-	if (FSScaleFlag) {
-		MaxY <- max(c(y, Ey))
+	if (std_flag) {
+		min_y <- min(y)
+		max_y <- max(y)
+	} else {
+		min_y <- 0
+		max_y <- 1
+		if (DAF_Y_scale_flag) {
+			max_y <- max(c(y, Ey))
+		}
 	}
 #------------------------------------------------------------------------------
 	par(mar = c(bottom = 0.5 + 4, left = 0.5 + 4, top = 0.5 + 2, right = 0.5))
-	plot(x, y, type = "h", xlim = c(1, MaxX), ylim = c(0, MaxY), lwd = 2, col = Color, 
-		main = "", xlab = "", ylab = "")
+	if (std_flag) {
+		plot(x, y, type = "l", xlim = c(1, max_x), ylim = c(min_y, max_y), 
+			lwd = 1, lty = 2, 
+			main = "", xlab = "", ylab = "")
+	} else {
+		plot(x, y, type = "h", xlim = c(1, max_x), ylim = c(min_y, max_y), 
+			lwd = 2, col = branch_col, 
+			main = "", xlab = "", ylab = "")
+	}
 	points(x, y, pch = 15, col = "gray", cex = 1)
 #------------------------------------------------------------------------------
 	points(Ex, Ey, pch = 15, col = "black", cex = 1)  # Expected SFS
 #------------------------------------------------------------------------------
-	text(MaxX, 0.95 * MaxY, sprintf("S = %d", Stat$S), pos = 2)
-	# text(MaxX, 0.85 * MaxY, sprintf("Pi = %.3f", Stat$Pi), pos = 2)
-	text(MaxX, 0.85 * MaxY, sprintf("Eta = %d", Stat$Eta), pos = 2)
-	text(MaxX, 0.75 * MaxY, sprintf("Theta_S = %.3f", Stat$ThetaS), pos = 2)
-	text(MaxX, 0.65 * MaxY, sprintf("Theta_Pi = %.3f", Stat$ThetaPi), pos = 2)
-	text(MaxX, 0.55 * MaxY, sprintf("Tajima_D = %.3f", Stat$TajD), pos = 2)
+	text(max_x, 0.95 * max_y, sprintf("S = %d", stat$stat_S), pos = 2)
+	# text(max_x, 0.85 * max_y, sprintf("Pi = %.3f", stat$stat_pi), pos = 2)
+	text(max_x, 0.85 * max_y, sprintf("Eta = %d", stat$stat_eta), pos = 2)
+	text(max_x, 0.75 * max_y, sprintf("Theta_S = %.3f", stat$stat_theta_S), pos = 2)
+	text(max_x, 0.65 * max_y, sprintf("Theta_Pi = %.3f", stat$stat_theta_pi), pos = 2)
+	text(max_x, 0.55 * max_y, sprintf("Tajima_D = %.3f", stat$stat_tajima_D), pos = 2)
 	title(main = "Derived Allele Frequency Spectrum")
 	title(xlab = "DAF (Number of occurences)")
 	title(ylab = "Frequency ")
 #------------------------------------------------------------------------------
-	if (Stat$S == 0) {
-		text(0.5 * n, 0.5 * MaxY, "No polymorphism", col = "red", adj = 0.5)
+	if (stat$stat_S == 0) {
+		text(0.5 * n, 0.5 * max_y, "No polymorphism", col = "red", adj = 0.5)
 	}
 #------------------------------------------------------------------------------
 }
@@ -282,27 +310,30 @@ draw_frequency_spectrum <- function(CoalTree, FSScaleFlag = FALSE,
 #==============================================================================
 # draw_demography
 #==============================================================================
-draw_demography <- function(Theta0 = 10.0, GrowthFactor = 1.0, Tau = 15.0, MaxT = 30)
+draw_demography <- function(param_theta_0 = 10.0, param_growth_factor = 1.0, 
+	param_tau = 15.0, max_time = 30)
 {
 #------------------------------------------------------------------------------
-	BoxX <- c(0, MaxT)
-	BoxY <- c(0, Theta0 * max(c(1, GrowthFactor)))
+	box_x <- c(0, max_time)
+	box_y <- c(0, param_theta_0 * max(c(1, param_growth_factor)))
 	par(mar = c(bottom = 0.5 + 4, left = 0.5 + 4, top = 0.5 + 2, right = 0.5))
-	plot(BoxX, BoxY, type = "n", main = "", xlab = "", ylab = "")
+	plot(box_x, box_y, type = "n", main = "", xlab = "", ylab = "")
 #------------------------------------------------------------------------------
-	if (GrowthFactor > 1.0) {
-		lines(c(0, Tau, Tau, MaxT), Theta0 * c(GrowthFactor, GrowthFactor, 1, 1), 
+	if (param_growth_factor > 1.0) {
+		lines(c(0, param_tau, param_tau, max_time), 
+			param_theta_0 * c(param_growth_factor, param_growth_factor, 1, 1), 
 			lty = 1, col = "red", lwd = 3)
 	} else {
-		if (GrowthFactor < 1.0) {
-			lines(c(0, Tau, Tau, MaxT), Theta0 * c(GrowthFactor, 
-				GrowthFactor, 1, 1), lty = 1, col = "blue", lwd = 3)
+		if (param_growth_factor < 1.0) {
+			lines(c(0, param_tau, param_tau, max_time), 
+				param_theta_0 * c(param_growth_factor, param_growth_factor, 1, 1),
+				lty = 1, col = "blue", lwd = 3)
 		} else {
-			lines(c(0, MaxT), c(Theta0, Theta0), lty = 1, col = "black", lwd = 3)
+			lines(c(0, max_time), c(param_theta_0, param_theta_0), lty = 1, col = "black", lwd = 3)
 		}
 	}
 #------------------------------------------------------------------------------
-	title(main = "Demography", xlab = "2ut", ylab = "Theta")
+	title(main = "Demography", xlab = "2 x ut", ylab = "Theta")
 #------------------------------------------------------------------------------
 }
 #==============================================================================
@@ -310,71 +341,117 @@ draw_demography <- function(Theta0 = 10.0, GrowthFactor = 1.0, Tau = 15.0, MaxT 
 
 
 #==============================================================================
-# check_parameters
+# check_integer
 #==============================================================================
-check_parameters <- function(n = 30, Theta0 = 10.0, GrowthFactor = 1.0, Tau = 15.0, 
-	MaxT = 30)
+check_integer <- function(
+	x = 0,
+	label = "x", 
+	min_x = -Inf, 
+	max_x = +Inf, 
+	min_inc = FALSE,
+	max_inc = FALSE,
+	rtn = list(check_flag = TRUE, check_msg = "")) 
 {
-#------------------------------------------------------------------------------
-	Flag <- TRUE
-	Msg <- ""
-#------------------------------------------------------------------------------
-	if (is.numeric(n)) {
-		if (n == round(n)) {
-			if ( (n < 3) | (n > 100) ) {
-				Flag <- FALSE
-				Msg <- sprintf("%s\n%s", Msg, "FAIL: [n] out of bounds")
+	if (is.numeric(x)) {
+		if (x == round(x)) {
+			out_of_bounds_flag <- FALSE
+			if (min_inc) {
+				if (x <= min_x) {
+					out_of_bounds_flag <- TRUE
+				}
+			} else {
+				if (x < min_x) {
+					out_of_bounds_flag <- TRUE
+				}
+			}
+			if (max_inc) {
+				if (x >= max_x) {
+					out_of_bounds_flag <- TRUE
+				}
+			} else {
+				if (x > max_x) {
+					out_of_bounds_flag <- TRUE
+				}
+			}
+			if (out_of_bounds_flag) {
+				rtn$check_flag <- FALSE
+				rtn$check_msg <- sprintf("%s\nFAIL: [%s] out of bounds", rtn$check_msg, label)
 			}
 		} else {
-			Flag <- FALSE
-			Msg <- sprintf("%s\n%s", Msg, "FAIL: [n] not integer")
+			rtn$check_flag <- FALSE
+			rtn$check_msg <- sprintf("%s\nFAIL: [%s] not integer", rtn$check_msg, label)
 		}
 	} else {
-		Flag <- FALSE
-		Msg <- sprintf("%s\n%s", Msg, "FAIL: [n] not numeric")
+		rtn$check_flag <- FALSE
+		rtn$check_msg <- sprintf("%s\nFAIL: [%s] not numeric", rtn$check_msg, label)
 	}
 #------------------------------------------------------------------------------
-	if (is.numeric(Theta0)) {
-		if ( (Theta0 <= 0) ) {
-			Flag <- FALSE
-			Msg <- sprintf("%s\n%s", Msg, "FAIL: [Theta0] out of bounds")
+	return(rtn)
+}
+
+
+#==============================================================================
+# check_real
+#==============================================================================
+check_real <- function(
+	x = 0.0,
+	label = "x", 
+	min_x = -Inf, 
+	max_x = +Inf, 
+	min_inc = FALSE,
+	max_inc = FALSE,
+	rtn = list(check_flag = TRUE, check_msg = "")) 
+{
+	if (is.numeric(x)) {
+		out_of_bounds_flag <- FALSE
+		if (min_inc) {
+			if (x <= min_x) {
+				out_of_bounds_flag <- TRUE
+			}
+		} else {
+			if (x < min_x) {
+				out_of_bounds_flag <- TRUE
+			}
+		}
+		if (max_inc) {
+			if (x >= max_x) {
+				out_of_bounds_flag <- TRUE
+			}
+		} else {
+			if (x > max_x) {
+				out_of_bounds_flag <- TRUE
+			}
+		}
+		if (out_of_bounds_flag) {
+			rtn$check_flag <- FALSE
+			rtn$check_msg <- sprintf("%s\nFAIL: [%s] out of bounds", rtn$check_msg, label)
 		}
 	} else {
-		Flag <- FALSE
-		Msg <- sprintf("%s\n%s", Msg, "FAIL: [Theta0] not numeric")
+		rtn$check_flag <- FALSE
+		rtn$check_msg <- sprintf("%s\nFAIL: [%s] not numeric", rtn$check_msg, label)
 	}
 #------------------------------------------------------------------------------
-	if (is.numeric(GrowthFactor)) {
-		if ( (GrowthFactor <= 0) ) {
-			Flag <- FALSE
-			Msg <- sprintf("%s\n%s", Msg, "FAIL: [GrowthFactor] out of bounds")
-		}
-	} else {
-		Flag <- FALSE
-		Msg <- sprintf("%s\n%s", Msg, "FAIL: [GrowthFactor] not numeric")
-	}
+	return(rtn)
+}
+
+
+
+#==============================================================================
+# check_parameters
+#==============================================================================
+check_parameters <- function(param_n = 30, param_theta_0 = 10.0, 
+	param_growth_factor = 1.0, param_tau = 15.0, max_time = 30)
+{
 #------------------------------------------------------------------------------
-	if (is.numeric(Tau)) {
-		if ( (Tau <= 0) ) {
-			Flag <- FALSE
-			Msg <- sprintf("%s\n%s", Msg, "FAIL: [Tau] out of bounds")
-		}
-	} else {
-		Flag <- FALSE
-		Msg <- sprintf("%s\n%s", Msg, "FAIL: [Tau] not numeric")
-	}
+	check_list <- list(check_flag = TRUE, check_msg = "")
 #------------------------------------------------------------------------------
-	if (is.numeric(MaxT)) {
-		if ( (MaxT <= 0) ) {
-			Flag <- FALSE
-			Msg <- sprintf("%s\n%s", Msg, "FAIL: [MaxT] out of bounds")
-		}
-	} else {
-		Flag <- FALSE
-		Msg <- sprintf("%s\n%s", Msg, "FAIL: [MaxT] not numeric")
-	}
+	check_list <- check_integer(param_n, label = "n", min_x = 2, max_x = 100, rtn = check_list)
+	check_list <- check_real(param_theta_0, label = "Theta_0", min_x = 0, min_inc = TRUE, rtn = check_list)
+	check_list <- check_real(param_growth_factor, label = "Growth Factor", min_x = 0, min_inc = TRUE, rtn = check_list)
+	check_list <- check_real(param_tau, label = "Tau", min_x = 0, min_inc = TRUE, rtn = check_list)
+	check_list <- check_real(max_time, label = "Maximum Time", min_x = 0, min_inc = TRUE, rtn = check_list)
 #------------------------------------------------------------------------------
-	return(list(Msg = Msg, Flag = Flag))
+	return(list(msg = check_list$check_msg, flag = check_list$check_flag))
 #------------------------------------------------------------------------------
 }
 #==============================================================================
@@ -384,40 +461,41 @@ check_parameters <- function(n = 30, Theta0 = 10.0, GrowthFactor = 1.0, Tau = 15
 #==============================================================================
 # simulate_coal_tree
 #==============================================================================
-simulate_coal_tree <- function(n = 30, Theta0 = 10.0, GrowthFactor = 1.0, Tau = 15.0, 
+simulate_coal_tree <- function(param_n = 30, param_theta_0 = 10.0, 
+	param_growth_factor = 1.0, param_tau = 15.0, 
 	ExpTimeFlag = FALSE)
 {
 #------------------------------------------------------------------------------
-	ParamChecking <- check_parameters(n = n, Theta0 = Theta0, 
-		GrowthFactor = GrowthFactor, Tau = Tau)
-	# print(ParamChecking)
+	param_checking <- check_parameters(param_n = param_n, param_theta_0 = param_theta_0, 
+		param_growth_factor = param_growth_factor, param_tau = param_tau)
+	# print(param_checking)
 #------------------------------------------------------------------------------
-	if (ParamChecking$Flag) {
-		m <- 2 * n - 1
+	if (param_checking$flag) {
+		nb_node <- 2 * param_n - 1
 		if (ExpTimeFlag) {
-			CoalTime <- Theta0 * GrowthFactor / choose(n:2, 2)
+			CoalTime <- param_theta_0 * param_growth_factor / choose(param_n:2, 2)
 		} else {
-			CoalTime <- Theta0 * GrowthFactor * rexp(n - 1) / choose(n:2, 2)
+			CoalTime <- param_theta_0 * param_growth_factor * rexp(param_n - 1) / choose(param_n:2, 2)
 		}
-		Height <- c(rep(0, n), cumsum(CoalTime))
-		PreGrowth <- which(Height > Tau)
-		Height[PreGrowth] <- Tau + (Height[PreGrowth] - Tau) / GrowthFactor
-		Parent <- rep(NA, m)
-		Mutation <- rep(NA, m)
-		NbLeaf <- c(rep(1, n), rep(NA, n - 1))
-		Available <- 1:n 
-		for (i in (n + 1):m) {
-			k <- length(Available)
-			Pos <- sample(1:k, size = 2, replace = FALSE)
-			Parent[Available[Pos]] <- i
-			NbLeaf[i] <- sum(NbLeaf[Available[Pos]])
-			Available <- c(Available[-Pos], i)
+		height <- c(rep(0, param_n), cumsum(CoalTime))
+		PreGrowth <- which(height > param_tau)
+		height[PreGrowth] <- param_tau + (height[PreGrowth] - param_tau) / param_growth_factor
+		parent <- rep(NA, nb_node)
+		nb_mut <- rep(NA, nb_node)
+		nb_leaf <- c(rep(1, param_n), rep(NA, param_n - 1))
+		avail_node <- 1:param_n 
+		for (i in (param_n + 1):nb_node) {
+			k <- length(avail_node)
+			pos <- sample(1:k, size = 2, replace = FALSE)
+			parent[avail_node[pos]] <- i
+			nb_leaf[i] <- sum(nb_leaf[avail_node[pos]])
+			avail_node <- c(avail_node[-pos], i)
 		}
-		for (i in 1:(m - 1)) {
-			BranchLength <- Height[Parent[i]] - Height[i]
-			Mutation[i] <- rpois(1, BranchLength / 2)
+		for (i in 1:(nb_node - 1)) {
+			BranchLength <- height[parent[i]] - height[i]
+			nb_mut[i] <- rpois(1, BranchLength / 2)
 		}
-		return(data.frame(Parent, Height, Mutation, NbLeaf))
+		return(data.frame(parent, height, nb_mut, nb_leaf))
 #------------------------------------------------------------------------------
 	} else {
 		return(NULL)
@@ -431,52 +509,58 @@ simulate_coal_tree <- function(n = 30, Theta0 = 10.0, GrowthFactor = 1.0, Tau = 
 #==============================================================================
 # DoPlot
 #==============================================================================
-DoPlot <- function(CoalTree, n, Theta0, GrowthFactor, Tau, MaxT, 
-	MDScaleFlag = FALSE, TimeScaleFlag = FALSE, FSScaleFlag = FALSE, 
-	DAFScaleFlag = FALSE, ColorFlag = FALSE)
+DoPlot <- function(coal_tree, 
+	param_n, param_theta_0, param_growth_factor, param_tau, 
+	max_time, time_scale_flag = FALSE, MD_Y_scale_flag = FALSE, 
+	DAF_X_scale_flag = FALSE, DAF_Y_scale_flag = FALSE, branch_color_flag = FALSE)
 {
 #------------------------------------------------------------------------------
-	ParamChecking <- check_parameters(n = n, Theta0 = Theta0, 
-		GrowthFactor = GrowthFactor, Tau = Tau, MaxT = MaxT)
-	# print(ParamChecking)
+	param_checking <- check_parameters(
+		param_n = param_n, param_theta_0 = param_theta_0, 
+		param_growth_factor = param_growth_factor, param_tau = param_tau, 
+		max_time = max_time)
+	# print(param_checking)
 #------------------------------------------------------------------------------
-	if (ParamChecking$Flag & !is.null(CoalTree)) {
+	if (param_checking$flag & !is.null(coal_tree)) {
 		layout(matrix(1:4, nrow = 2, ncol = 2, byrow = TRUE))
 		
-		if (TimeScaleFlag) {
-			MD <- compute_mismatch_distribution(CoalTree)
-			MaxMD <- max(as.numeric(names(MD)))
-			if (MaxMD > 0) {
-				MaxT = MaxMD
+		if (time_scale_flag) {
+			MD <- compute_mismatch_distribution(coal_tree)
+			max_MD <- max(as.numeric(names(MD)))
+			if (max_MD > 0) {
+				max_time = max_MD
 			}
 		}
-		draw_coal_tree(CoalTree, MaxT = MaxT, ColorFlag = ColorFlag)
-		if (GrowthFactor > 1.0) {
-			abline(v = Tau, col = "red", lty = 2)
+		draw_coal_tree(coal_tree, max_time = max_time, branch_color_flag = branch_color_flag)
+		if (param_growth_factor > 1.0) {
+			abline(v = param_tau, col = "red", lty = 2)
 		} else {
-			if (GrowthFactor < 1.0) {
-				abline(v = Tau, col = "blue", lty = 2)
+			if (param_growth_factor < 1.0) {
+				abline(v = param_tau, col = "blue", lty = 2)
 			} else {
-				E_TMRCA <- 2 * Theta0 * (1 - 1 / n)
+				E_TMRCA <- 2 * param_theta_0 * (1 - 1 / param_n)
 				abline(v = E_TMRCA, col = "black", lty = 2)
-				text(MaxT, n * 0.85, sprintf("E[TMRCA] = %.2f", E_TMRCA), pos = 2)
+				text(max_time, param_n * 0.85, sprintf("E[TMRCA] = %.2f", E_TMRCA), pos = 2)
 			}
 		}
 		
-		draw_demography(Theta0 = Theta0, Tau = Tau, GrowthFactor = GrowthFactor, 
-			MaxT = MaxT)
-		draw_mismatch_distribution(CoalTree, MaxT = MaxT, 
-			MDScaleFlag = MDScaleFlag)
-		draw_frequency_spectrum(CoalTree, FSScaleFlag = FSScaleFlag, 
-			DAFScaleFlag = DAFScaleFlag, ColorFlag = ColorFlag)
+		draw_demography(param_theta_0 = param_theta_0, param_tau = param_tau, 
+			param_growth_factor = param_growth_factor, max_time = max_time)
+			
+		draw_mismatch_distribution(coal_tree, max_time = max_time, 
+			MD_Y_scale_flag = MD_Y_scale_flag)
+			
+		draw_frequency_spectrum(coal_tree, DAF_Y_scale_flag = DAF_Y_scale_flag, 
+			DAF_X_scale_flag = DAF_X_scale_flag, branch_color_flag = branch_color_flag)
 	
 		layout(1)
 #------------------------------------------------------------------------------
 	} else {
-		plot(c(0, 1), c(0, 1), type = "n", xlab = "", ylab = "", main = "", 
+		plot(c(0, 1), c(0, 1), type = "n", 
+			xlab = "", ylab = "", main = "", 
 			xaxt = "n", yaxt = "n", bty = "n")
-		Msg <- sprintf("ERROR: check parameter values%s", ParamChecking$Msg)
-		text(0.5, 0.5, Msg, col = "red", adj = 0.5)
+		msg <- sprintf("ERROR: check parameter values%s", param_checking$msg)
+		text(0.5, 0.5, msg, col = "red", adj = 0.5)
 	}
 #------------------------------------------------------------------------------
 }
@@ -487,20 +571,31 @@ DoPlot <- function(CoalTree, n, Theta0, GrowthFactor, Tau, MaxT,
 #==============================================================================
 # DoIt
 #==============================================================================
-DoIt <- function(n = 30, Theta0 = 10.0, GrowthFactor = 1.0, Tau = 15.0, MaxT = 30, 
-	MDScaleFlag = FALSE, FSScaleFlag = FALSE, TimeScaleFlag = FALSE, 
-	ColorFlag = FALSE) 
+DoIt <- function(param_n = 30, param_theta_0 = 10.0, param_growth_factor = 1.0, 
+	param_tau = 15.0, max_time = 30, 
+	MD_Y_scale_flag = FALSE, DAF_Y_scale_flag = FALSE, time_scale_flag = FALSE, 
+	branch_color_flag = FALSE) 
 {
 #------------------------------------------------------------------------------
-	CoalTree <- simulate_coal_tree(n = n, Theta0 = Theta0, 
-		GrowthFactor = GrowthFactor, Tau = Tau)
-	DoPlot(CoalTree, n = n, Theta0 = Theta0, GrowthFactor = GrowthFactor, Tau = Tau, 
-		MaxT = MaxT, MDScaleFlag = MDScaleFlag, FSScaleFlag = FSScaleFlag, 
-		TimeScaleFlag = TimeScaleFlag, ColorFlag = ColorFlag)
+	coal_tree <- simulate_coal_tree(
+		param_n = param_n, param_theta_0 = param_theta_0, 
+		param_growth_factor = param_growth_factor, param_tau = param_tau)
+		
+	DoPlot(coal_tree, param_n = param_n, param_theta_0 = param_theta_0, 
+		param_growth_factor = param_growth_factor, param_tau = param_tau, 
+		max_time = max_time, MD_Y_scale_flag = MD_Y_scale_flag, 
+		DAF_Y_scale_flag = DAF_Y_scale_flag, 
+		time_scale_flag = time_scale_flag, 
+		branch_color_flag = branch_color_flag)
 #------------------------------------------------------------------------------
 }
 #==============================================================================
 
 
-# n <- 30; Theta0 <- 10.0; GrowthFactor <- 1.0; Tau <- 15.0; MaxT <- 30; MDScaleFlag <- TRUE; FSScaleFlag <- TRUE; ColorFlag <- TRUE
-# DoIt(n = n, Theta0 = Theta0, GrowthFactor = GrowthFactor, Tau = Tau, MaxT = MaxT, MDScaleFlag = MDScaleFlag, FSScaleFlag = FSScaleFlag, ColorFlag = ColorFlag)
+# param_n <- 30; param_theta_0 <- 10.0; param_growth_factor <- 1.0; param_tau <- 15.0; max_time <- 30; MD_Y_scale_flag <- TRUE; DAF_Y_scale_flag <- TRUE; branch_color_flag <- TRUE
+# coal_tree <- simulate_coal_tree(param_n = param_n, param_theta_0 = param_theta_0, param_growth_factor = param_growth_factor, param_tau = param_tau)
+# draw_coal_tree(coal_tree, max_time = max_time, branch_color_flag = branch_color_flag)
+# draw_demography(param_theta_0 = param_theta_0, param_tau = param_tau, param_growth_factor = param_growth_factor, max_time = max_time)
+# draw_mismatch_distribution(coal_tree, max_time = max_time, MD_Y_scale_flag = MD_Y_scale_flag)
+# draw_frequency_spectrum(coal_tree, DAF_Y_scale_flag = DAF_Y_scale_flag, DAF_X_scale_flag = DAF_X_scale_flag, branch_color_flag = branch_color_flag)
+# DoIt(param_n = param_n, param_theta_0 = param_theta_0, param_growth_factor = param_growth_factor, param_tau = param_tau, max_time = max_time, MD_Y_scale_flag = MD_Y_scale_flag, DAF_Y_scale_flag = DAF_Y_scale_flag, branch_color_flag = branch_color_flag)
