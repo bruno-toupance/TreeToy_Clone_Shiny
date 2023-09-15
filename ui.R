@@ -1,6 +1,6 @@
 #==============================================================================
 #    ui.R : TreeToy_Clone_Shiny User-Interface
-#    Copyright (C) 2021  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    Copyright (C) 2023  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -58,7 +58,17 @@ shinyUI(
 		mainPanel(
 			tabsetPanel(
 				type = "tabs",
-				tabPanel(title = "MainPlot", plotOutput(outputId = "MainPlot", height = "600px"))
+				
+				tabPanel(
+					title = "MainPlot", 
+					plotOutput(outputId = "MainPlot", height = "600px")
+				),
+				
+				tabPanel(
+					title = "Tree", 
+					plotOutput(outputId = "TreePlot", height = "600px")
+				),
+				
 			)
 		)
 
