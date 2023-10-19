@@ -24,54 +24,61 @@ library("shiny")
 #==============================================================================
 shinyUI(
 
-	pageWithSidebar(
+    pageWithSidebar(
 
 #------------------------------------------------------------------------------
-		headerPanel("TreeToy Clone"),
+        headerPanel("TreeToy Clone"),
 
 
 #------------------------------------------------------------------------------
 # Sidebar with input
 #------------------------------------------------------------------------------
-		sidebarPanel(
-			wellPanel(
-				numericInput(inputId = 'param_n', label = 'Sample size - integer [min = 2 - max = 100]:', value = 30),
-				numericInput(inputId = 'param_theta_0', label = 'Theta_0 - numeric:', value = 10.0),
-				numericInput(inputId = 'param_growth_factor', label = 'Growth Factor - numeric:', value = 1.0),
-				numericInput(inputId = 'param_tau', label = 'Tau - numeric:', value = 15),
-				actionButton(inputId = 'go', label = 'New Simulation', icon("random"))
-			),
-			wellPanel(
-				numericInput(inputId = 'max_time', label = 'Maximum Time - numeric:', value = 50),
-				checkboxInput(inputId = 'time_scale_flag',label = 'Scale time X axis', FALSE),
-				checkboxInput(inputId = 'MD_Y_scale_flag', label = 'Scale mismatch distribution Y axis', FALSE),
-				checkboxInput(inputId = 'DAF_X_scale_flag', label = 'Scale DAF X axis', FALSE),
-				checkboxInput(inputId = 'DAF_Y_scale_flag', label = 'Scale DAF Y axis', FALSE),
-				checkboxInput(inputId = 'branch_color_flag', label = 'Branch colors', FALSE)
-			)
-		),
+        sidebarPanel(
+            wellPanel(
+                numericInput(inputId = 'param_n', 
+                    label = 'Sample size - integer [min = 2 - max = 100]:', value = 30),
+                numericInput(inputId = 'param_theta_0', 
+                    label = 'Theta_0 - numeric:', value = 10.0),
+                numericInput(inputId = 'param_growth_factor', 
+                    label = 'Growth Factor - numeric:', value = 1.0),
+                numericInput(inputId = 'param_tau', 
+                    label = 'Tau - numeric:', value = 15),
+                actionButton(inputId = 'go', 
+                    label = 'New Simulation', icon("random"))
+            ),
+            wellPanel(
+                numericInput(inputId = 'max_time', label = 'Maximum Time - numeric:', value = 50),
+                checkboxInput(inputId = 'time_scale_flag',label = 'Scale time X axis', FALSE),
+                checkboxInput(inputId = 'MD_Y_scale_flag', label = 'Scale mismatch distribution Y axis', FALSE),
+                checkboxInput(inputId = 'DAF_X_scale_flag', label = 'Scale DAF X axis', FALSE),
+                checkboxInput(inputId = 'DAF_Y_scale_flag', label = 'Scale DAF Y axis', FALSE),
+                radioButtons("branch_color_type", "Branch colors:", 
+                    choices = c("none", "all", "singleton"))
+                # checkboxInput(inputId = 'branch_color_flag', label = 'Branch colors', FALSE)
+            )
+        ),
 
 
 #------------------------------------------------------------------------------
 # Plot Panel
 #------------------------------------------------------------------------------
-		mainPanel(
-			tabsetPanel(
-				type = "tabs",
-				
-				tabPanel(
-					title = "MainPlot", 
-					plotOutput(outputId = "MainPlot", height = "600px")
-				),
-				
-				tabPanel(
-					title = "Tree", 
-					plotOutput(outputId = "TreePlot", height = "600px")
-				),
-				
-			)
-		)
+        mainPanel(
+            tabsetPanel(
+                type = "tabs",
+                
+                tabPanel(
+                    title = "MainPlot", 
+                    plotOutput(outputId = "MainPlot", height = "600px")
+                ),
+                
+                tabPanel(
+                    title = "Tree", 
+                    plotOutput(outputId = "TreePlot", height = "600px")
+                ),
+                
+            )
+        )
 
-	)
+    )
 )
 

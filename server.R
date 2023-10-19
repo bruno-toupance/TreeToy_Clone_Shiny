@@ -56,7 +56,8 @@ shinyServer(
 					MD_Y_scale_flag = input$MD_Y_scale_flag, 
 					DAF_X_scale_flag = input$DAF_X_scale_flag,
 					DAF_Y_scale_flag = input$DAF_Y_scale_flag,
-					branch_color_flag = input$branch_color_flag
+					branch_color_type = input$branch_color_type
+					# branch_color_flag = input$branch_color_flag
 				)
 			}
 		)
@@ -76,7 +77,8 @@ shinyServer(
 					MD_Y_scale_flag = input$MD_Y_scale_flag, 
 					DAF_X_scale_flag = input$DAF_X_scale_flag,
 					DAF_Y_scale_flag = input$DAF_Y_scale_flag,
-					branch_color_flag = input$branch_color_flag
+					branch_color_type = input$branch_color_type
+					# branch_color_flag = input$branch_color_flag
 				)
 			}
 		)

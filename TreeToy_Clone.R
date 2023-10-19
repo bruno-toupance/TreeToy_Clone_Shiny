@@ -167,7 +167,7 @@ find_position <- function(coal_tree_df, pos_vec, i)
 #==============================================================================
 # branch_color_palette
 #==============================================================================
-branch_color_palette <- function(coal_tree, branch_color_flag = FALSE)
+branch_color_palette <- function(coal_tree, branch_color_type = "none")
 {
     coal_tree_df <- coal_tree$coal_tree_df
     
@@ -178,16 +178,11 @@ branch_color_palette <- function(coal_tree, branch_color_flag = FALSE)
     color_palette_rainbow <- rainbow(n, start = 0, end = 0.7)
     
     color_palette <- color_palette_gray
-    if (branch_color_flag) {
-        # color_palette <- color_palette_rainbow
-        
-        # color_palette <- color_palette_gray
-        # color_palette_set1 <- brewer.pal(n = 8, name = "Set1")
-        # obs <- unique(coal_tree_df$nb_leaf)
-        # for (i in 1:min(length(obs), 8)) {
-            # color_palette[obs[i]] <- color_palette_set1[i]
-        # }
+    if (branch_color_type == "all") {
+        color_palette <- color_palette_rainbow
+    }
 
+    if (branch_color_type == "singleton") {
         color_palette <- color_palette_gray
         color_palette[1] <- "red"
     }
@@ -201,7 +196,7 @@ branch_color_palette <- function(coal_tree, branch_color_flag = FALSE)
 # draw_coal_tree
 #==============================================================================
 draw_coal_tree <- function(coal_tree, max_time = 3, 
-    branch_color_flag = FALSE, add_mutation_flag = TRUE)
+    branch_color_type = "none", add_mutation_flag = TRUE)
 {
 
     if (!is.null(coal_tree)) {
@@ -222,7 +217,7 @@ draw_coal_tree <- function(coal_tree, max_time = 3,
         par(mar = c(bottom = 0.5 + 4, left = 0.5 + 4, top = 0.5 + 2, right = 0.5))
         plot(box_x, box_y, type = "n", yaxt = "n", bty = "n", main = "", xlab = "", ylab = "")
 
-        branch_col = branch_color_palette(coal_tree, branch_color_flag = branch_color_flag)
+        branch_col = branch_color_palette(coal_tree, branch_color_type = branch_color_type)
 
         # Plot branches
         for (node_i in 1:(2 * n - 2)) {
@@ -416,7 +411,7 @@ compute_SFS_stat <- function(ksi_i)
 #==============================================================================
 draw_frequency_spectrum <- function(coal_tree, 
     DAF_Y_scale_flag = FALSE, DAF_X_scale_flag = FALSE, 
-    branch_color_flag = FALSE, std_flag = FALSE)
+    branch_color_type = "none", std_flag = FALSE)
 {
 
     if (!is.null(coal_tree)) {
@@ -446,7 +441,7 @@ draw_frequency_spectrum <- function(coal_tree,
         # Observed DAF distribution
         x <- i
         y <- ksi_i
-        branch_col <- branch_color_palette(coal_tree, branch_color_flag = branch_color_flag)
+        branch_col <- branch_color_palette(coal_tree, branch_color_type = branch_color_type)
 
         # Filter out non-null values
         pos <- which(ksi_i != 0)
@@ -624,6 +619,7 @@ simulate_coal_tree <- function(param_n = 30, param_theta_0 = 10.0,
         coal_tree_nb_node <- nb_node
         coal_tree_root_i <- nb_node
         coal_tree_TMRCA <- height[coal_tree_root_i]
+        coal_tree_E_TMRCA <- 2 * param_theta_0 * (1 - 1 / param_n)
         coal_tree_mut_height <- mut_height
 
         # Create coalescence tree (R list)
@@ -633,6 +629,7 @@ simulate_coal_tree <- function(param_n = 30, param_theta_0 = 10.0,
           nb_node = coal_tree_nb_node, 
           root_i = coal_tree_root_i, 
           TMRCA = coal_tree_TMRCA,
+          E_TMRCA = coal_tree_E_TMRCA,
           mut_height =  coal_tree_mut_height)
 
         return(coal_tree)
@@ -650,7 +647,7 @@ simulate_coal_tree <- function(param_n = 30, param_theta_0 = 10.0,
 DoPlot <- function(coal_tree, 
     param_n, param_theta_0, param_growth_factor, param_tau, 
     max_time, time_scale_flag = FALSE, MD_Y_scale_flag = FALSE, 
-    DAF_X_scale_flag = FALSE, DAF_Y_scale_flag = FALSE, branch_color_flag = FALSE)
+    DAF_X_scale_flag = FALSE, DAF_Y_scale_flag = FALSE, branch_color_type = "none")
 {
 
     # Parameters checking
@@ -674,10 +671,22 @@ DoPlot <- function(coal_tree,
             if (max_MD > 0) {
                 max_time <- max_MD
             }
+            if (coal_tree$TMRCA > max_time) {
+                max_time <- coal_tree$TMRCA
+            }
+            if (param_growth_factor == 1.0) {
+                if (coal_tree$E_TMRCA > max_time) {
+                    max_time <- coal_tree$E_TMRCA
+                }
+            } else {
+                if (param_tau > max_time) {
+                    max_time <- param_tau
+                }
+            }
         }
 
         # Graph #1: Draw coalescence tree
-        draw_coal_tree(coal_tree, max_time = max_time, branch_color_flag = branch_color_flag)
+        draw_coal_tree(coal_tree, max_time = max_time, branch_color_type = branch_color_type)
 
         if (param_growth_factor > 1.0) {
             abline(v = param_tau, col = "red", lty = 2)
@@ -685,7 +694,8 @@ DoPlot <- function(coal_tree,
             if (param_growth_factor < 1.0) {
                 abline(v = param_tau, col = "blue", lty = 2)
             } else {
-                E_TMRCA <- 2 * param_theta_0 * (1 - 1 / param_n)
+                # E_TMRCA <- 2 * param_theta_0 * (1 - 1 / param_n)
+                E_TMRCA <- coal_tree$E_TMRCA
                 abline(v = E_TMRCA, col = "black", lty = 2)
                 text(max_time, param_n * 0.85, sprintf("E[TMRCA] = %.2f", E_TMRCA), pos = 2)
             }
@@ -701,7 +711,7 @@ DoPlot <- function(coal_tree,
 
         # Graph #4: Draw allele frequency spectrum
         draw_frequency_spectrum(coal_tree, DAF_Y_scale_flag = DAF_Y_scale_flag, 
-            DAF_X_scale_flag = DAF_X_scale_flag, branch_color_flag = branch_color_flag)
+            DAF_X_scale_flag = DAF_X_scale_flag, branch_color_type = branch_color_type)
 
         layout(1)
 
@@ -732,7 +742,7 @@ DoPlot <- function(coal_tree,
 panel_tree_plot <- function(coal_tree, 
     param_n, param_theta_0, param_growth_factor, param_tau, 
     max_time, time_scale_flag = FALSE, MD_Y_scale_flag = FALSE, 
-    DAF_X_scale_flag = FALSE, DAF_Y_scale_flag = FALSE, branch_color_flag = FALSE)
+    DAF_X_scale_flag = FALSE, DAF_Y_scale_flag = FALSE, branch_color_type = "none")
 {
 
     # Parameters checking
@@ -749,7 +759,7 @@ panel_tree_plot <- function(coal_tree,
         layout(1)
 
         max_time <- coal_tree$TMRCA
-        draw_coal_tree(coal_tree, max_time = max_time, branch_color_flag = branch_color_flag)
+        draw_coal_tree(coal_tree, max_time = max_time, branch_color_type = branch_color_type)
 
         layout(1)
 
@@ -778,7 +788,7 @@ panel_tree_plot <- function(coal_tree,
 DoIt <- function(param_n = 30, param_theta_0 = 10.0, param_growth_factor = 1.0, 
     param_tau = 15.0, max_time = 30, 
     MD_Y_scale_flag = FALSE, DAF_Y_scale_flag = FALSE, time_scale_flag = FALSE, 
-    branch_color_flag = FALSE) 
+    branch_color_type = "none") 
 {
     # Generate a coalescence tree with mutations
     coal_tree <- simulate_coal_tree(
@@ -791,26 +801,26 @@ DoIt <- function(param_n = 30, param_theta_0 = 10.0, param_growth_factor = 1.0,
         max_time = max_time, MD_Y_scale_flag = MD_Y_scale_flag, 
         DAF_Y_scale_flag = DAF_Y_scale_flag, 
         time_scale_flag = time_scale_flag, 
-        branch_color_flag = branch_color_flag)
+        branch_color_type = branch_color_type)
 }
 
 
 #==============================================================================
 
-# param_n <- 30; 
-# param_theta_0 <- 10.0; 
-# param_growth_factor <- 1.0; 
-# param_tau <- 15.0; 
-# max_time <- 30; 
-# MD_Y_scale_flag <- TRUE; 
-# DAF_Y_scale_flag <- TRUE; 
-# DAF_X_scale_flag <- TRUE; 
-# branch_color_flag <- TRUE
+# param_n <- 30
+# param_theta_0 <- 10.0 
+# param_growth_factor <- 1.0
+# param_tau <- 15.0
+# max_time <- 30
+# MD_Y_scale_flag <- TRUE
+# DAF_Y_scale_flag <- TRUE
+# DAF_X_scale_flag <- TRUE
+# branch_color_type <- "none"
 
 # coal_tree <- simulate_coal_tree(param_n = param_n, param_theta_0 = param_theta_0, param_growth_factor = param_growth_factor, param_tau = param_tau)
 
 # layout(1)
-# draw_coal_tree(coal_tree, max_time = max_time, branch_color_flag = branch_color_flag)
+# draw_coal_tree(coal_tree, max_time = max_time, branch_color_type = branch_color_type)
 
 # layout(1)
 # draw_demography(param_theta_0 = param_theta_0, param_tau = param_tau, param_growth_factor = param_growth_factor, max_time = max_time)
@@ -819,7 +829,7 @@ DoIt <- function(param_n = 30, param_theta_0 = 10.0, param_growth_factor = 1.0,
 # draw_mismatch_distribution(coal_tree, max_time = max_time, MD_Y_scale_flag = MD_Y_scale_flag)
 
 # layout(1)
-# draw_frequency_spectrum(coal_tree, DAF_Y_scale_flag = DAF_Y_scale_flag, DAF_X_scale_flag = DAF_X_scale_flag, branch_color_flag = branch_color_flag)
+# draw_frequency_spectrum(coal_tree, DAF_Y_scale_flag = DAF_Y_scale_flag, DAF_X_scale_flag = DAF_X_scale_flag, branch_color_type = branch_color_type)
 
-# DoIt(param_n = param_n, param_theta_0 = param_theta_0, param_growth_factor = param_growth_factor, param_tau = param_tau, max_time = max_time, MD_Y_scale_flag = MD_Y_scale_flag, DAF_Y_scale_flag = DAF_Y_scale_flag, branch_color_flag = branch_color_flag)
+# DoIt(param_n = param_n, param_theta_0 = param_theta_0, param_growth_factor = param_growth_factor, param_tau = param_tau, max_time = max_time, MD_Y_scale_flag = MD_Y_scale_flag, DAF_Y_scale_flag = DAF_Y_scale_flag, branch_color_type = branch_color_type)
 
