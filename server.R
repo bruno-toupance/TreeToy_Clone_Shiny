@@ -19,7 +19,7 @@
 
 library("shiny")
 
-source("TreeToy_Clone.R")
+source("TreeToy_clone.R")
 
 #==============================================================================
 # shinyServer
@@ -31,21 +31,20 @@ shinyServer(
 		coal_tree <- reactive(
 			{
 				tmp <- input$go
-				return(
-					simulate_coal_tree(
-					param_n = input$param_n, 
-					param_theta_0 = input$param_theta_0, 
-					param_growth_factor = input$param_growth_factor, 
-					param_tau = input$param_tau)
-				)
+				
+				return(simulate_coal_tree(
+				    param_n = input$param_n, 
+				    param_theta_0 = input$param_theta_0, 
+				    param_growth_factor = input$param_growth_factor, 
+				    param_tau = input$param_tau))
 			}
 		)
 
 
-#------------------------------------------------------------------------------
-		output$MainPlot <- renderPlot(
+# main_plot -------------------------------------------------------------------
+		output$main_plot <- renderPlot(
 			{
-				Plot <- DoPlot(
+			    my_plot <- do_plot(
 					coal_tree(), 
 					param_n = input$param_n, 
 					param_theta_0 = input$param_theta_0, 
@@ -57,16 +56,15 @@ shinyServer(
 					DAF_X_scale_flag = input$DAF_X_scale_flag,
 					DAF_Y_scale_flag = input$DAF_Y_scale_flag,
 					branch_color_type = input$branch_color_type
-					# branch_color_flag = input$branch_color_flag
 				)
 			}
 		)
 
 
-#------------------------------------------------------------------------------
-		output$TreePlot <- renderPlot(
+# tree_plot -------------------------------------------------------------------
+		output$tree_plot <- renderPlot(
 			{
-				Plot <- panel_tree_plot(
+				my_plot <- panel_tree_plot(
 					coal_tree(), 
 					param_n = input$param_n, 
 					param_theta_0 = input$param_theta_0, 
@@ -78,7 +76,6 @@ shinyServer(
 					DAF_X_scale_flag = input$DAF_X_scale_flag,
 					DAF_Y_scale_flag = input$DAF_Y_scale_flag,
 					branch_color_type = input$branch_color_type
-					# branch_color_flag = input$branch_color_flag
 				)
 			}
 		)
@@ -86,4 +83,3 @@ shinyServer(
 
 	}
 )
-#==============================================================================
