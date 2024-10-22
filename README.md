@@ -7,14 +7,15 @@ Original Java applet developped by Stephen Wooding: https://user.xmission.com/~w
 ## Required libraries
 - shiny
 
-To install/update the packages, run the following commands into the R console:
+To install or update the packages, run the following commands in the R console:
 ```{r }
 install.packages("shiny")
 ```
 
 
-## Run from R
+## Running the App from R
+To run the Shiny app directly from the repository, use the following commands in your R console:
 ```{r }
-library("shiny")
+library(shiny)
 runGitHub(repo = "TreeToy_Clone_Shiny", username = "bruno-toupance", ref = "main")
 ```

@@ -1,6 +1,6 @@
 #==============================================================================
-#    server.R : TreeToy_Clone_Shiny Server
-#    Copyright (C) 2023  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    server.R: TreeToy_Clone_Shiny Server
+#    Copyright (C) 2024  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 #==============================================================================
 
 
-library("shiny")
+library(shiny)
 
 source("TreeToy_clone.R")
 
@@ -25,61 +25,61 @@ source("TreeToy_clone.R")
 # shinyServer
 #==============================================================================
 shinyServer(
-	function(input, output, session) {
-
-#------------------------------------------------------------------------------
-		coal_tree <- reactive(
-			{
-				tmp <- input$go
-				
-				return(simulate_coal_tree(
-				    param_n = input$param_n, 
-				    param_theta_0 = input$param_theta_0, 
-				    param_growth_factor = input$param_growth_factor, 
-				    param_tau = input$param_tau))
-			}
-		)
-
-
-# main_plot -------------------------------------------------------------------
-		output$main_plot <- renderPlot(
-			{
-			    my_plot <- do_plot(
-					coal_tree(), 
-					param_n = input$param_n, 
-					param_theta_0 = input$param_theta_0, 
-					param_growth_factor = input$param_growth_factor, 
-					param_tau = input$param_tau, 
-					max_time = input$max_time, 
-					time_scale_flag = input$time_scale_flag,
-					MD_Y_scale_flag = input$MD_Y_scale_flag, 
-					DAF_X_scale_flag = input$DAF_X_scale_flag,
-					DAF_Y_scale_flag = input$DAF_Y_scale_flag,
-					branch_color_type = input$branch_color_type
-				)
-			}
-		)
-
-
-# tree_plot -------------------------------------------------------------------
-		output$tree_plot <- renderPlot(
-			{
-				my_plot <- panel_tree_plot(
-					coal_tree(), 
-					param_n = input$param_n, 
-					param_theta_0 = input$param_theta_0, 
-					param_growth_factor = input$param_growth_factor, 
-					param_tau = input$param_tau, 
-					max_time = input$max_time, 
-					time_scale_flag = input$time_scale_flag,
-					MD_Y_scale_flag = input$MD_Y_scale_flag, 
-					DAF_X_scale_flag = input$DAF_X_scale_flag,
-					DAF_Y_scale_flag = input$DAF_Y_scale_flag,
-					branch_color_type = input$branch_color_type
-				)
-			}
-		)
-
-
-	}
+    function(input, output, session) {
+        
+        #---
+        coal_tree <- reactive(
+            {
+                tmp <- input$go
+                
+                return(simulate_coal_tree(
+                    param_n = input$param_n, 
+                    param_theta_0 = input$param_theta_0, 
+                    param_growth_factor = input$param_growth_factor, 
+                    param_tau = input$param_tau))
+            }
+        )
+        
+        
+        # main_plot ---
+        output$main_plot <- renderPlot(
+            {
+                my_plot <- do_plot(
+                    coal_tree(), 
+                    param_n = input$param_n, 
+                    param_theta_0 = input$param_theta_0, 
+                    param_growth_factor = input$param_growth_factor, 
+                    param_tau = input$param_tau, 
+                    max_time = input$max_time, 
+                    time_scale_flag = input$time_scale_flag,
+                    MD_Y_scale_flag = input$MD_Y_scale_flag, 
+                    DAF_X_scale_flag = input$DAF_X_scale_flag,
+                    DAF_Y_scale_flag = input$DAF_Y_scale_flag,
+                    branch_color_type = input$branch_color_type
+                )
+            }
+        )
+        
+        
+        # tree_plot ---
+        output$tree_plot <- renderPlot(
+            {
+                my_plot <- panel_tree_plot(
+                    coal_tree(), 
+                    param_n = input$param_n, 
+                    param_theta_0 = input$param_theta_0, 
+                    param_growth_factor = input$param_growth_factor, 
+                    param_tau = input$param_tau, 
+                    max_time = input$max_time, 
+                    time_scale_flag = input$time_scale_flag,
+                    MD_Y_scale_flag = input$MD_Y_scale_flag, 
+                    DAF_X_scale_flag = input$DAF_X_scale_flag,
+                    DAF_Y_scale_flag = input$DAF_Y_scale_flag,
+                    branch_color_type = input$branch_color_type
+                )
+            }
+        )
+        
+        
+    }
 )

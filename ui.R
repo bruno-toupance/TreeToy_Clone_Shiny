@@ -1,6 +1,6 @@
 #==============================================================================
-#    ui.R : TreeToy_Clone_Shiny User-Interface
-#    Copyright (C) 2023  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    ui.R: TreeToy_Clone_Shiny User-Interface
+#    Copyright (C) 2024  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,22 +16,22 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #==============================================================================
 
-library("shiny")
-# library("shinyBS")
+library(shiny)
+# library(shinyBS)
 
 
 #==============================================================================
 # shinyUI 
 #==============================================================================
 shinyUI(
-
+    
     pageWithSidebar(
-
-# Header ----------------------------------------------------------------------
+        
+        # Header ---
         headerPanel("TreeToy Clone"),
-
-
-# Sidebar with input ----------------------------------------------------------
+        
+        
+        # Sidebar with input ---
         sidebarPanel(
             wellPanel(
                 numericInput(
@@ -88,9 +88,9 @@ shinyUI(
                 
             )
         ),
-
-
-# Plot Panel ------------------------------------------------------------------
+        
+        
+        # Plot Panel ---
         mainPanel(
             tabsetPanel(
                 type = "tabs",
@@ -107,7 +107,7 @@ shinyUI(
                 
             )
         )
-
+        
     )
 )
 
