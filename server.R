@@ -1,6 +1,6 @@
 #==============================================================================
 #    server.R: TreeToy_Clone_Shiny Server
-#    Copyright (C) 2024  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    Copyright (C) 2025  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 library(shiny)
 
 source("TreeToy_clone.R")
+
 
 #==============================================================================
 # shinyServer
@@ -55,6 +56,7 @@ shinyServer(
                     MD_Y_scale_flag = input$MD_Y_scale_flag, 
                     DAF_X_scale_flag = input$DAF_X_scale_flag,
                     DAF_Y_scale_flag = input$DAF_Y_scale_flag,
+                    Expected_WF_DAF_flag = input$Expected_WF_DAF_flag,
                     branch_color_type = input$branch_color_type
                 )
             }

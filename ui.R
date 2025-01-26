@@ -1,6 +1,6 @@
 #==============================================================================
 #    ui.R: TreeToy_Clone_Shiny User-Interface
-#    Copyright (C) 2024  Bruno Toupance <bruno.toupance@mnhn.fr>
+#    Copyright (C) 2025  Bruno Toupance <bruno.toupance@mnhn.fr>
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #==============================================================================
 
+
 library(shiny)
-# library(shinyBS)
 
 
 #==============================================================================
@@ -44,7 +44,7 @@ shinyUI(
                 
                 numericInput(
                     inputId = 'param_theta_0', 
-                    label = 'Theta_0 - numeric:', value = 10.0),
+                    label = 'Theta0 - numeric:', value = 20.0),
                 
                 numericInput(
                     inputId = 'param_growth_factor', 
@@ -71,7 +71,7 @@ shinyUI(
                 checkboxInput(
                     inputId = 'MD_Y_scale_flag', 
                     label = 'Scale mismatch distribution Y axis', 
-                    value = FALSE),
+                    value = TRUE),
                 
                 checkboxInput(
                     inputId = 'DAF_X_scale_flag', 
@@ -79,7 +79,11 @@ shinyUI(
                 
                 checkboxInput(
                     inputId = 'DAF_Y_scale_flag', 
-                    label = 'Scale DAF Y axis', value = FALSE),
+                    label = 'Scale DAF Y axis', value = TRUE),
+                
+                checkboxInput(
+                    inputId = 'Expected_WF_DAF_flag', 
+                    label = 'Show expected WF DAF', value = FALSE),
                 
                 radioButtons(
                     inputId = "branch_color_type", 
